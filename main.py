@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from pathlib import Path
-import json, math, sqlite3
+import json, math, sqlite3, os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -58,6 +58,18 @@ init()
 def group_score(m, fields):
     vals=[SCORE_MAP[f][m[f]] for f in fields if m.get(f,'') and m[f] in SCORE_MAP[f]]
     return sum(vals)/len(vals) if vals else 3.0
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post('/api/login')
+def login(req: LoginRequest):
+    valid_user = os.environ.get('APP_USERNAME','fikriaja')
+    valid_pass = os.environ.get('APP_PASSWORD','2026gantinmax')
+    if req.username != valid_user or req.password != valid_pass:
+        raise HTTPException(401, 'Username atau password salah.')
+    return {'ok': True}
 
 class Motor(BaseModel):
     plat: str = Field(min_length=2,max_length=30)
